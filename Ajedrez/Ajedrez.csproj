@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\alfil_blanco.png" />
+    <None Remove="Images\alfil_negro.png" />
+    <None Remove="Images\caballo_blanco.png" />
+    <None Remove="Images\caballo_negro.png" />
+    <None Remove="Images\peon_blanco.png" />
+    <None Remove="Images\peon_negro.png" />
+    <None Remove="Images\reina_blanco.png" />
+    <None Remove="Images\reina_negro.png" />
+    <None Remove="Images\rey_blanco.png" />
+    <None Remove="Images\rey_negro.png" />
+    <None Remove="Images\torre_blanco.png" />
+    <None Remove="Images\torre_negro.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\alfil_blanco.png" />
+    <Resource Include="Images\alfil_negro.png" />
+    <Resource Include="Images\caballo_blanco.png" />
+    <Resource Include="Images\caballo_negro.png" />
+    <Resource Include="Images\peon_blanco.png" />
+    <Resource Include="Images\peon_negro.png" />
+    <Resource Include="Images\reina_blanco.png" />
+    <Resource Include="Images\reina_negro.png" />
+    <Resource Include="Images\rey_blanco.png" />
+    <Resource Include="Images\rey_negro.png" />
+    <Resource Include="Images\torre_blanco.png" />
+    <Resource Include="Images\torre_negro.png" />
+  </ItemGroup>
+
+</Project>
