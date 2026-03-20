@@ -113,7 +113,7 @@ namespace Ajedrez
                 var img = border?.Child as Image;
                 Piece p = img?.Tag as Piece;
                 p.Move(move, copyBoard);
-                if (KingStatusChecker.IsKingInCheck(king, copyBoard))
+                if (KingStatusChecker.IsKingInCheck(p is King ? p : king, copyBoard))
                 {
                     this.ValidMoves.Remove(move);
                 }

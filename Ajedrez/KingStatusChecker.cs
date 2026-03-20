@@ -19,8 +19,10 @@ namespace Ajedrez
             bool IsCheck = IsKingInCheck(king, board);
 
             king.CalculateValidMoves(board);
-            Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allContraryValidMoves = CalculateAllValidMovesForColor(king.Color == 1 ? 0 : 1, board);
-            bool hasEscape = king.ValidMoves.Any(move => !allContraryValidMoves.Values.Any(moves => moves.Contains(move)));
+            king.CheckInvalidMoves(board, king, asm);
+            //Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allContraryValidMoves = CalculateAllValidMovesForColor(king.Color == 1 ? 0 : 1, board);
+            //bool hasEscape = king.ValidMoves.Any(move => !allContraryValidMoves.Values.Any(moves => moves.Contains(move)));
+            bool hasEscape = king.ValidMoves.Count > 0;
 
             Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allAlliesValidMoves = CalculateAllValidMovesForColor(king.Color, board);
             bool canBeSaved = kingCanBeSaved(king, allAlliesValidMoves, asm, board);
@@ -33,13 +35,13 @@ namespace Ajedrez
             {
                 return "En Jaque Mate"; // Solo jaque
             }
-            else if (!IsCheck)
+            else if (!IsCheck && !hasEscape && !canBeSaved)
             {
-                return "A salvo";
+                return "Ahogado";
             }
             else
             {
-                return "Estado desconocido"; // Esto no debería ocurrir, pero es una medida de seguridad
+                return "A salvo"; // Esto no debería ocurrir, pero es una medida de seguridad
             }
 
 
@@ -83,7 +85,7 @@ namespace Ajedrez
             Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allValidMoves = new Dictionary<Tuple<int, string>, List<Tuple<int, int>>>();
             foreach (var child in board.Children)
             {
-                if (child is Border border && border.Child is Image img && img.Tag is Piece p && p.Color == color)
+                if (child is Border border && border.Child is Image img && img.Tag is Piece p && p.Color == color && p is not King)
                 {
                     p.CalculateValidMoves(board);
                     allValidMoves.Add(Tuple.Create(p.Position.Item1 * board.Columns + p.Position.Item2, p.Name), p.ValidMoves);

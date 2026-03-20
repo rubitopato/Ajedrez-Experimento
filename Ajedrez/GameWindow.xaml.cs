@@ -181,8 +181,6 @@ namespace Ajedrez
                     }
                 }
                 selectedPiece.Move(Tuple.Create(row, column), BoardGrid);
-                selectedPiece.CalculateValidMoves(BoardGrid);
-                selectedPiece.CheckInvalidMoves(BoardGrid, selectedPiece.Color == 1 ? WhiteKing : BlackKing, asm);
 
                 checksChecker.Content = $"El rey {(selectedPiece.Color == 1 ? "Negro" : "Blanco")} está {KingStatusChecker.CheckKingStatus(selectedPiece.Color == 1 ? BlackKing : WhiteKing, BoardGrid, asm)}!";
 
