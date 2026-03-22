@@ -67,7 +67,7 @@ namespace Ajedrez
                     var border = copyBoard.Children[ally.Key.Item1] as Border;
                     var img = border?.Child as Image;
                     Piece p = img?.Tag as Piece;
-                    p.Move(move, copyBoard);
+                    p.Move(move, copyBoard, asm, false);
                     // Verifica si el rey sigue en jaque después del movimiento
                     if (!IsKingInCheck(king, copyBoard))
                     {

@@ -28,7 +28,7 @@ namespace Ajedrez
         public Piece(string name, Tuple<int, int> position, string imagePath)
         {
             this.Name = name;
-            this.Color = name.StartsWith("White") ? 1 : 0;
+            this.Color = name.Contains("White") ? 1 : 0;
             this.Position = position;
             this.RecalculateValidMoves = false;
             this.ImageControl = new Image
@@ -83,7 +83,7 @@ namespace Ajedrez
             }
             return validMoves;
         }
-        public void Move(Tuple<int, int> NewPosition, UniformGrid board)
+        public void Move(Tuple<int, int> NewPosition, UniformGrid board, string asm, bool showPromotionUI = true)
         {
 
             int LastIndex = this.Position.Item1 * board.Columns + this.Position.Item2;
@@ -98,6 +98,15 @@ namespace Ajedrez
             ((Border)board.Children[NewIndex]).Child = this.ImageControl;
 
             this.hasMoved = true;
+
+            if(this is Pawn pawn)
+            {
+                int promotionRow = this.Color == 1 ? 0 : board.Rows - 1;
+                if (this.Position.Item1 == promotionRow)
+                {
+                    pawn.Promote(board, asm, showPromotionUI);
+                }
+            }
         }
 
         public void CheckInvalidMoves(UniformGrid board, Piece king, string asm)
@@ -112,7 +121,9 @@ namespace Ajedrez
                 var border = copyBoard.Children[this.Position.Item1 * board.Columns + this.Position.Item2] as Border;
                 var img = border?.Child as Image;
                 Piece p = img?.Tag as Piece;
-                p.Move(move, copyBoard);
+                // When simulating moves we don't want to show UI dialogs like promotion choices;
+                // promote silently (default to Queen) in simulations.
+                p.Move(move, copyBoard, asm, false);
                 if (KingStatusChecker.IsKingInCheck(p is King ? p : king, copyBoard))
                 {
                     this.ValidMoves.Remove(move);
@@ -156,7 +167,46 @@ namespace Ajedrez
             this.ValidMoves = ValidNewPositions;
         }
 
-        public void Promote(string newPieceType, UniformGrid board) { }
+        public void Promote(UniformGrid board, string asm, bool showDialog = true)
+        {
+
+            if (!showDialog)
+            {
+                // Silent promotion during simulations: default to Queen
+                string colorName = this.Color == 1 ? "blanco" : "negro";
+                string[] parts = this.Name.Split('_');
+                string index = parts.Length > 2 ? parts[2] : "0";
+                var newName = $"New_{(this.Color==1?"White":"Black")}_Queen_{index}";
+                var newPiece = new Queen(newName, this.Position, $"pack://application:,,,/{asm};component/Images/reina_{colorName}.png");
+                int idx = this.Position.Item1 * board.Columns + this.Position.Item2;
+                ((Border)board.Children[idx]).Child = newPiece.ImageControl;
+                return;
+            }
+
+            var win = new PromotionWindow(this.Color, asm);
+            var result = win.ShowDialog();
+            if (result == true && !string.IsNullOrEmpty(win.SelectedPieceType))
+            {
+                string selected = win.SelectedPieceType; // "Queen", "Rook", "Bishop", "Knight"
+                string colorName = this.Color == 1 ? "blanco" : "negro";
+                string[] parts = this.Name.Split('_');
+                string index = parts.Length > 2 ? parts[2] : "0";
+                var colorPrefix = this.Color == 1 ? "White" : "Black";
+                Piece newPiece = selected switch
+                {
+                    "Queen" => new Queen($"{colorPrefix}_Queen_New_{index}", this.Position, $"pack://application:,,,/{asm};component/Images/reina_{colorName}.png"),
+                    "Rook" => new Rook($"{colorPrefix}_Rook_New_{index}", this.Position, $"pack://application:,,,/{asm};component/Images/torre_{colorName}.png"),
+                    "Bishop" => new Bishop($"{colorPrefix}_Bishop_New_{index}", this.Position, $"pack://application:,,,/{asm};component/Images/alfil_{colorName}.png"),
+                    "Knight" => new Knight($"{colorPrefix}_Knight_New_{index}", this.Position, $"pack://application:,,,/{asm};component/Images/caballo_{colorName}.png"),
+                    _ => new Queen($"{colorPrefix}_Queen_New_{index}", this.Position, $"pack://application:,,,/{asm};component/Images/reina_{colorName}.png"),
+                };
+
+                int idx = this.Position.Item1 * board.Columns + this.Position.Item2;
+                ((Border)board.Children[idx]).Child = null;
+                ((Border)board.Children[idx]).Child = newPiece.ImageControl;
+            }
+            return;
+        }
 
     }
 
@@ -275,15 +325,6 @@ namespace Ajedrez
             this.ValidMoves = ValidNewPositions;
         }
 
-    }
-
-    internal class PieceState
-    {
-        public string Name { get; init; }
-        public int Color { get; init; }
-        public int Row { get; init; }
-        public int Col { get; init; }
-        public string? ImageUri { get; init; }
     }
 
 }
