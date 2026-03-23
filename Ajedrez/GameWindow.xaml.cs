@@ -188,11 +188,13 @@ namespace Ajedrez
                 {
                     SetPiecesClickableByColor(1, false);
                     SetPiecesClickableByColor(0, true);
+                    changePawnsThatMovedTwo(BoardGrid, 0);
                 }
                 else
                 {
                     SetPiecesClickableByColor(1, true);
                     SetPiecesClickableByColor(0, false);
+                    changePawnsThatMovedTwo(BoardGrid, 1);
                 }
             }
         }
@@ -210,6 +212,17 @@ namespace Ajedrez
                     {
                         img.MouseLeftButtonUp += PieceImage_MouseLeftButtonUp;
                     }
+                }
+            }
+        }
+
+        private void changePawnsThatMovedTwo(UniformGrid board, int color)
+        {
+            foreach (var child in board.Children)
+            {
+                if (child is Border border && border.Child is Image img && img.Tag is Pawn pawn && pawn.Color == color)
+                {
+                    pawn.hasJustMovedTwo = false;
                 }
             }
         }

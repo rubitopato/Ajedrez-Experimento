@@ -85,10 +85,30 @@ namespace Ajedrez
         }
         public void Move(Tuple<int, int> NewPosition, UniformGrid board, string asm, bool showPromotionUI = true)
         {
-
             int LastIndex = this.Position.Item1 * board.Columns + this.Position.Item2;
             this.Position = NewPosition;
             int NewIndex = this.Position.Item1 * board.Columns + this.Position.Item2;
+
+            if (this is Pawn pawn)
+            {
+                int distance = Math.Abs(NewIndex - LastIndex);
+                if (distance == 16)
+                {
+                    pawn.hasJustMovedTwo = true;
+                }
+
+                if ( ((Border)board.Children[NewIndex]).Child == null && (NewIndex - LastIndex) % 8 != 0)//comer al paso
+                {
+                    int direction = this.Color == 1 ? 8 : -8;
+                    ((Border)board.Children[NewIndex + direction]).Child = null;
+                }
+
+                int promotionRow = this.Color == 1 ? 0 : board.Rows - 1;
+                if (this.Position.Item1 == promotionRow)
+                {
+                    pawn.Promote(board, asm, showPromotionUI);
+                }
+            }
 
             if ( ((Border)board.Children[NewIndex]).Child != null)
             {
@@ -99,14 +119,6 @@ namespace Ajedrez
 
             this.hasMoved = true;
 
-            if(this is Pawn pawn)
-            {
-                int promotionRow = this.Color == 1 ? 0 : board.Rows - 1;
-                if (this.Position.Item1 == promotionRow)
-                {
-                    pawn.Promote(board, asm, showPromotionUI);
-                }
-            }
         }
 
         public void CheckInvalidMoves(UniformGrid board, Piece king, string asm)
@@ -136,7 +148,11 @@ namespace Ajedrez
 
     internal class Pawn : Piece
     {
-        public Pawn(string name, Tuple<int, int> position, string imagePath) : base(name, position, imagePath) { }
+        public bool hasJustMovedTwo { get; set; }
+        public Pawn(string name, Tuple<int, int> position, string imagePath) : base(name, position, imagePath) 
+        { 
+            this.hasJustMovedTwo = false;
+        }
 
         public override void CalculateValidMoves(UniformGrid board)
         {
@@ -161,6 +177,24 @@ namespace Ajedrez
                 if (piece?.Color != this.Color)
                 {
                     ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + PawnDirection, this.Position.Item2 + 1));
+                }
+            }
+
+            if ( ((Border)board.Children[IndexOfCurrentPosition + 1]).Child != null)
+            {
+                Piece? piece = GetPieceAt( (Border)board.Children[IndexOfCurrentPosition + 1] );
+                if (piece is Pawn adjacentPawn && adjacentPawn.Color != this.Color && adjacentPawn.hasJustMovedTwo)
+                {
+                    ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + PawnDirection, this.Position.Item2 + 1));
+                }
+            }
+
+            if (((Border)board.Children[IndexOfCurrentPosition - 1]).Child != null)
+            {
+                Piece? piece = GetPieceAt((Border)board.Children[IndexOfCurrentPosition - 1]);
+                if (piece is Pawn adjacentPawn && adjacentPawn.Color != this.Color && adjacentPawn.hasJustMovedTwo)
+                {
+                    ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + PawnDirection, this.Position.Item2 - 1));
                 }
             }
 
