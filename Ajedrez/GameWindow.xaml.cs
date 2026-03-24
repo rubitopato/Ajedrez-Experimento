@@ -24,6 +24,7 @@ namespace Ajedrez
         private Piece selectedPiece = null;
         private Piece WhiteKing = null;
         private Piece BlackKing = null;
+        private int RedBorder = 0;
 
         private static readonly string? asm = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
         private readonly Dictionary<Tuple<int, int>, Piece> initialPieces = new Dictionary<Tuple<int, int>, Piece>
@@ -197,15 +198,14 @@ namespace Ajedrez
                 switch (KingStatusChecker.CheckKingStatus(selectedPiece.Color == 1 ? BlackKing : WhiteKing, BoardGrid, asm))
                 {
                     case 0:
-                        Border? whiteKingBorder = BoardGrid.Children[WhiteKing.Position.Item1 * BoardGrid.Columns + WhiteKing.Position.Item2] as Border;
-                        Border? blackKingBorder = BoardGrid.Children[BlackKing.Position.Item1 * BoardGrid.Columns + BlackKing.Position.Item2] as Border;
-                        whiteKingBorder?.Background = (string)whiteKingBorder.Tag == "Light" ? Brushes.Bisque : Brushes.SaddleBrown;
-                        blackKingBorder?.Background = (string)blackKingBorder.Tag == "Light" ? Brushes.Bisque : Brushes.SaddleBrown;
+                        Border cb = ((Border)BoardGrid.Children[RedBorder]);
+                        cb?.Background = (string)cb.Tag == "Light" ? Brushes.Bisque : Brushes.SaddleBrown;
                         break;
 
                     case 1:
                         Tuple<int, int> kingPos = selectedPiece.Color == 1 ? BlackKing.Position : WhiteKing.Position;
-                        ((Border)BoardGrid.Children[kingPos.Item1 * BoardGrid.Columns + kingPos.Item2]).Background = Brushes.Red;
+                        RedBorder = kingPos.Item1 * BoardGrid.Columns + kingPos.Item2;
+                        ((Border)BoardGrid.Children[RedBorder]).Background = Brushes.Red;
                         break;
 
                     case 2:
