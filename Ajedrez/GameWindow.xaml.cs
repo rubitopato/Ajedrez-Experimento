@@ -26,7 +26,7 @@ namespace Ajedrez
         private Piece BlackKing = null;
 
         private static readonly string? asm = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-        private static readonly Dictionary<Tuple<int, int>, Piece> initialPieces = new Dictionary<Tuple<int, int>, Piece>
+        private readonly Dictionary<Tuple<int, int>, Piece> initialPieces = new Dictionary<Tuple<int, int>, Piece>
             {
                 { Tuple.Create(0, 0), new Rook("Black_Rook_0", Tuple.Create(0, 0), $"pack://application:,,,/{asm};component/Images/torre_negro.png") },
                 { Tuple.Create(0, 1), new Knight("Black_Knight_0", Tuple.Create(0, 1), $"pack://application:,,,/{asm};component/Images/caballo_negro.png") },
@@ -125,6 +125,18 @@ namespace Ajedrez
             }
         }
 
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            Reset();
+        }
+
+        private void Reset()
+        {
+            var w = new GameWindow();
+            w.Show();
+            this.Close();
+        }
+
         private void PieceImage_MouseLeftButtonUp(object? sender, MouseButtonEventArgs e)
         {
             if (sender is Image img && img.Tag is Piece piece)
@@ -182,7 +194,46 @@ namespace Ajedrez
                 }
                 selectedPiece.Move(Tuple.Create(row, column), BoardGrid, asm, true);
 
-                checksChecker.Content = $"El rey {(selectedPiece.Color == 1 ? "Negro" : "Blanco")} está {KingStatusChecker.CheckKingStatus(selectedPiece.Color == 1 ? BlackKing : WhiteKing, BoardGrid, asm)}!";
+                switch (KingStatusChecker.CheckKingStatus(selectedPiece.Color == 1 ? BlackKing : WhiteKing, BoardGrid, asm))
+                {
+                    case 0:
+                        Border? whiteKingBorder = BoardGrid.Children[WhiteKing.Position.Item1 * BoardGrid.Columns + WhiteKing.Position.Item2] as Border;
+                        Border? blackKingBorder = BoardGrid.Children[BlackKing.Position.Item1 * BoardGrid.Columns + BlackKing.Position.Item2] as Border;
+                        whiteKingBorder?.Background = (string)whiteKingBorder.Tag == "Light" ? Brushes.Bisque : Brushes.SaddleBrown;
+                        blackKingBorder?.Background = (string)blackKingBorder.Tag == "Light" ? Brushes.Bisque : Brushes.SaddleBrown;
+                        break;
+
+                    case 1:
+                        Tuple<int, int> kingPos = selectedPiece.Color == 1 ? BlackKing.Position : WhiteKing.Position;
+                        ((Border)BoardGrid.Children[kingPos.Item1 * BoardGrid.Columns + kingPos.Item2]).Background = Brushes.Red;
+                        break;
+
+                    case 2:
+                        var win = new VictoryWindow(selectedPiece.Color == 1 ? "Los blancos ganan" : "Los negros ganan");
+                        var result = win.ShowDialog();
+                        if (result == true)
+                        {
+                            Reset();
+                        }
+                        else
+                        {
+                            this.Close();
+                        }
+                        break;
+
+                    case 3:
+                        var drawWin = new VictoryWindow(selectedPiece.Color == 1 ? "Empate: Rey negro ahogado" : "Empate: Rey blanco ahogado");
+                        var drawResult = drawWin.ShowDialog();
+                        if (drawResult == true)
+                        {
+                            Reset();
+                        }
+                        else
+                        {
+                            this.Close();
+                        }
+                        break;
+                }
 
                 if (selectedPiece.Color == 1)
                 {
@@ -196,6 +247,8 @@ namespace Ajedrez
                     SetPiecesClickableByColor(0, false);
                     changePawnsThatMovedTwo(BoardGrid, 1);
                 }
+
+                selectedPiece = null;
             }
         }
 

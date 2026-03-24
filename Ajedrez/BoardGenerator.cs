@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
 
@@ -66,7 +63,7 @@ namespace Ajedrez
                             Height = 60,
                             Stretch = System.Windows.Media.Stretch.Uniform
                         };
-                        img.Tag = ps; // o asigna un nuevo objeto modelo si quieres manipularlo
+                        img.Tag = ps;
                         border.Child = img;
                     }
                     grid.Children.Add(border);

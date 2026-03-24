@@ -1,0 +1,15 @@
+﻿<Window x:Class="Ajedrez.VictoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Ajedrez"
+        mc:Ignorable="d"
+        Height="450" Width="800">
+    <Grid>
+        <Label x:Name="VictoryLabel" Content="¡Victoria!" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Margin="0,127,0,240" FontSize="30" FontWeight="Bold" Foreground="Black" Background="White" Width="550"/>
+        <Button x:Name="PlayAgainButton" Content="Jugar de nuevo" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,100,0,50" Width="150" Height="50" Click="PlayAgainButton_Click" Background="#FFA0EFC2" FontSize="16"/>
+        <Button x:Name="CloseButton" Content="Salir" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,250,0,50" Width="150" Height="50" Click="CloseButton_Click" Background="#FFA0EFC2" FontSize="16"/>
+
+    </Grid>
+</Window>

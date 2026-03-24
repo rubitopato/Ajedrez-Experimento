@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
 namespace Ajedrez
@@ -14,14 +11,12 @@ namespace Ajedrez
             return allContraryValidMoves.Values.Any(moves => moves.Contains(king.Position));
         }
 
-        public static string CheckKingStatus(Piece king, UniformGrid board, string asm)
+        public static int CheckKingStatus(Piece king, UniformGrid board, string asm)
         {
             bool IsCheck = IsKingInCheck(king, board);
 
             king.CalculateValidMoves(board);
             king.CheckInvalidMoves(board, king, asm);
-            //Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allContraryValidMoves = CalculateAllValidMovesForColor(king.Color == 1 ? 0 : 1, board);
-            //bool hasEscape = king.ValidMoves.Any(move => !allContraryValidMoves.Values.Any(moves => moves.Contains(move)));
             bool hasEscape = king.ValidMoves.Count > 0;
 
             Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allAlliesValidMoves = CalculateAllValidMovesForColor(king.Color, board);
@@ -29,28 +24,22 @@ namespace Ajedrez
 
             if (IsCheck && (hasEscape || canBeSaved))
             {
-                return "En Jaque";
+                return 1; //en jaque
             }
             else if (IsCheck && !hasEscape && !canBeSaved)
             {
-                return "En Jaque Mate"; // Solo jaque
+                return 2; //jaque mate
             }
             else if (!IsCheck && !hasEscape && !canBeSaved)
             {
-                return "Ahogado";
+                return 3; //ahogado
             }
             else
             {
-                return "A salvo"; // Esto no debería ocurrir, pero es una medida de seguridad
+                return 0; //a salvo
             }
 
 
-        }
-
-        private bool IsStalemate(int color)
-        {
-            // Implementa la lógica para verificar si el juego está en tablas
-            return false; // Placeholder
         }
 
         private static bool kingCanBeSaved(Piece king, Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allyMoves, string asm, UniformGrid board)
@@ -64,10 +53,9 @@ namespace Ajedrez
                     // Simula el movimiento
                     List<Piece> boardState = BoardGenerator.CaptureBoardState(board);
                     UniformGrid copyBoard = BoardGenerator.BuildGridFromState(8, 8, boardState, asm);
-                    var border = copyBoard.Children[ally.Key.Item1] as Border;
-                    var img = border?.Child as Image;
-                    Piece p = img?.Tag as Piece;
+                    Piece p = Piece.GetPieceAt(copyBoard.Children[ally.Key.Item1] as Border);
                     p.Move(move, copyBoard, asm, false);
+
                     // Verifica si el rey sigue en jaque después del movimiento
                     if (!IsKingInCheck(king, copyBoard))
                     {

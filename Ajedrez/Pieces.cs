@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Pipelines;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Windows.Automation.Provider;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -45,7 +36,7 @@ namespace Ajedrez
 
         public abstract void CalculateValidMoves(UniformGrid board);
 
-        protected static Piece? GetPieceAt(Border border)
+        public static Piece? GetPieceAt(Border border)
         {
             var img = border?.Child as Image;
             return img?.Tag as Piece;
@@ -88,8 +79,9 @@ namespace Ajedrez
             int LastIndex = this.Position.Item1 * board.Columns + this.Position.Item2;
             this.Position = NewPosition;
             int NewIndex = this.Position.Item1 * board.Columns + this.Position.Item2;
+            Piece? targetPiece = GetPieceAt((Border)board.Children[NewIndex]);
 
-            if ( ((Border)board.Children[NewIndex]).Child != null)
+            if (targetPiece != null)
             {
                ((Border)board.Children[NewIndex]).Child = null;
             }
@@ -106,7 +98,7 @@ namespace Ajedrez
                     pawn.hasJustMovedTwo = true;
                 }
 
-                if (((Border)board.Children[NewIndex]).Child == null && (NewIndex - LastIndex) % 8 != 0)//comer al paso
+                if (targetPiece == null && (NewIndex - LastIndex) % 8 != 0)//comer al paso
                 {
                     int direction = this.Color == 1 ? 8 : -8;
                     ((Border)board.Children[NewIndex + direction]).Child = null;
@@ -183,9 +175,8 @@ namespace Ajedrez
                 // Simula el movimiento
                 List<Piece> boardState = BoardGenerator.CaptureBoardState(board);
                 UniformGrid copyBoard = BoardGenerator.BuildGridFromState(8, 8, boardState, asm);
-                var border = copyBoard.Children[this.Position.Item1 * board.Columns + this.Position.Item2] as Border;
-                var img = border?.Child as Image;
-                Piece p = img?.Tag as Piece;
+                Piece? p = GetPieceAt(copyBoard.Children[this.Position.Item1 * board.Columns + this.Position.Item2] as Border);
+
                 // When simulating moves we don't want to show UI dialogs like promotion choices;
                 // promote silently (default to Queen) in simulations.
                 p.Move(move, copyBoard, asm, false);
@@ -215,6 +206,7 @@ namespace Ajedrez
 
             ValidNewPositions.AddRange(GetContiniuosValidMovesInDirection(board, PawnDirection, 0, hasMoved ? 1 : 2)); 
 
+            //comer normal
             if (this.Position.Item2 > 0 && ((Border)board.Children[IndexOfCurrentPosition + PawnDirection * board.Columns - 1]).Child != null)
             {
                 Piece? piece = GetPieceAt((Border)board.Children[IndexOfCurrentPosition + PawnDirection * board.Columns - 1]);
@@ -233,6 +225,7 @@ namespace Ajedrez
                 }
             }
 
+            //comer al paso
             if ( ((Border)board.Children[IndexOfCurrentPosition + 1]).Child != null)
             {
                 Piece? piece = GetPieceAt( (Border)board.Children[IndexOfCurrentPosition + 1] );
@@ -274,7 +267,7 @@ namespace Ajedrez
             var result = win.ShowDialog();
             if (result == true && !string.IsNullOrEmpty(win.SelectedPieceType))
             {
-                string selected = win.SelectedPieceType; // "Queen", "Rook", "Bishop", "Knight"
+                string selected = win.SelectedPieceType;
                 string colorName = this.Color == 1 ? "blanco" : "negro";
                 string[] parts = this.Name.Split('_');
                 string index = parts.Length > 2 ? parts[2] : "0";
@@ -416,6 +409,7 @@ namespace Ajedrez
             if (this.Color == 1 && !this.hasMoved) //castling blanco
             {
                 Dictionary<Tuple<int, string>, List<Tuple<int, int>>> opponentsValidMoves = null;
+
                 //castling corto
                 if ( ((Border)board.Children[61]).Child == null && ((Border)board.Children[62]).Child == null )
                 {
@@ -432,6 +426,7 @@ namespace Ajedrez
                         }
                     }
                 }
+
                 //castling largo
                 if (((Border)board.Children[57]).Child == null && ((Border)board.Children[58]).Child == null && ((Border)board.Children[59]).Child == null )
                 {
@@ -449,9 +444,11 @@ namespace Ajedrez
                     }
                 }
             }
+
             else if(this.Color == 0 && !this.hasMoved) //castling negro
             {
                 Dictionary<Tuple<int, string>, List<Tuple<int, int>>> opponentsValidMoves = null;
+
                 //castling corto
                 if (((Border)board.Children[5]).Child == null && ((Border)board.Children[6]).Child == null)
                 {
@@ -468,6 +465,7 @@ namespace Ajedrez
                         }
                     }
                 }
+
                 //castling largo
                 if (((Border)board.Children[1]).Child == null && ((Border)board.Children[2]).Child == null && ((Border)board.Children[3]).Child == null)
                 {
