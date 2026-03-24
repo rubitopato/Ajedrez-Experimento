@@ -1,4 +1,7 @@
-﻿using System.Windows.Controls;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -170,21 +173,27 @@ namespace Ajedrez
         {
             if (this.ValidMoves == null) return;
             List<Tuple<int,int>> ValidMovesAux = this.ValidMoves.ToList();
+
+            // Use lightweight BoardModel for simulation instead of copying UI
+            var model = BoardModel.FromUniformGrid(board);
+
             foreach (var move in ValidMovesAux)
             {
-                // Simula el movimiento
-                List<Piece> boardState = BoardGenerator.CaptureBoardState(board);
-                UniformGrid copyBoard = BoardGenerator.BuildGridFromState(8, 8, boardState, asm);
-                Piece? p = GetPieceAt(copyBoard.Children[this.Position.Item1 * board.Columns + this.Position.Item2] as Border);
+                // find corresponding light piece in model
+                var lp = model.Get(this.Position.Item1, this.Position.Item2);
+                if (lp == null) continue;
 
-                // When simulating moves we don't want to show UI dialogs like promotion choices;
-                // promote silently (default to Queen) in simulations.
-                p.Move(move, copyBoard, asm, false);
-                if (KingStatusChecker.IsKingInCheck(p is King ? p : king, copyBoard))
+                var sim = model.Clone();
+                var simPiece = sim.Get(lp.Row, lp.Col);
+                if (simPiece == null) continue;
+
+                sim.ApplyMove(simPiece, move.Item1, move.Item2);
+
+                // check king safety on simulated model
+                if (sim.IsKingInCheck(king.Color))
                 {
                     this.ValidMoves.Remove(move);
                 }
-                
             }
         }
 

@@ -7,8 +7,8 @@ namespace Ajedrez
     {
         public static bool IsKingInCheck(Piece king, UniformGrid board)
         {
-            Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allContraryValidMoves = CalculateAllValidMovesForColor(king.Color == 1 ? 0 : 1, board);
-            return allContraryValidMoves.Values.Any(moves => moves.Contains(king.Position));
+            var model = BoardModel.FromUniformGrid(board);
+            return model.IsKingInCheck(king.Color);
         }
 
         public static int CheckKingStatus(Piece king, UniformGrid board, string asm)
