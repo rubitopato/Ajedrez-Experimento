@@ -22,7 +22,7 @@ namespace Ajedrez
         public List<Tuple<int, int>>? ValidMoves { get; set; }
         public Tuple<int, int> Position { get; set; }
         public Image ImageControl { get; }
-        protected bool hasMoved = false;
+        public bool hasMoved = false;
 
 
         public Piece(string name, Tuple<int, int> position, string imagePath)
@@ -89,6 +89,15 @@ namespace Ajedrez
             this.Position = NewPosition;
             int NewIndex = this.Position.Item1 * board.Columns + this.Position.Item2;
 
+            if ( ((Border)board.Children[NewIndex]).Child != null)
+            {
+               ((Border)board.Children[NewIndex]).Child = null;
+            }
+            ((Border)board.Children[LastIndex]).Child = null;
+            ((Border)board.Children[NewIndex]).Child = this.ImageControl;
+
+            this.hasMoved = true;
+
             if (this is Pawn pawn)
             {
                 int distance = Math.Abs(NewIndex - LastIndex);
@@ -97,7 +106,7 @@ namespace Ajedrez
                     pawn.hasJustMovedTwo = true;
                 }
 
-                if ( ((Border)board.Children[NewIndex]).Child == null && (NewIndex - LastIndex) % 8 != 0)//comer al paso
+                if (((Border)board.Children[NewIndex]).Child == null && (NewIndex - LastIndex) % 8 != 0)//comer al paso
                 {
                     int direction = this.Color == 1 ? 8 : -8;
                     ((Border)board.Children[NewIndex + direction]).Child = null;
@@ -110,14 +119,58 @@ namespace Ajedrez
                 }
             }
 
-            if ( ((Border)board.Children[NewIndex]).Child != null)
+            if (this is King king)
             {
-               ((Border)board.Children[NewIndex]).Child = null;
-            }
-            ((Border)board.Children[LastIndex]).Child = null;
-            ((Border)board.Children[NewIndex]).Child = this.ImageControl;
+                int distance = Math.Abs(NewIndex - LastIndex);
+                if (distance == 2) //castling
+                {
+                    if (NewIndex == 62) //castling corto blanco
+                    {
+                        var rook = GetPieceAt((Border)board.Children[63]) as Rook;
+                        if (rook != null)
+                        {
+                            rook.Position = Tuple.Create(7, 5);
+                            ((Border)board.Children[63]).Child = null;
+                            ((Border)board.Children[61]).Child = rook.ImageControl;
+                            rook.hasMoved = true;
+                        }
+                    }
+                    else if (NewIndex == 58) //castling largo blanco
+                    {
+                        var rook = GetPieceAt((Border)board.Children[56]) as Rook;
+                        if (rook != null)
+                        {
+                            rook.Position = Tuple.Create(7, 3);
+                            ((Border)board.Children[56]).Child = null;
+                            ((Border)board.Children[59]).Child = rook.ImageControl;
+                            rook.hasMoved = true;
+                        }
+                    }
+                    else if (NewIndex == 6) //castling negro corto
+                    {
+                        var rook = GetPieceAt((Border)board.Children[7]) as Rook;
+                        if (rook != null)
+                        {
+                            rook.Position = Tuple.Create(0, 5);
+                            ((Border)board.Children[7]).Child = null;
+                            ((Border)board.Children[5]).Child = rook.ImageControl;
+                            rook.hasMoved = true;
+                        }
 
-            this.hasMoved = true;
+                    }
+                    else if (NewIndex == 2) //castling negro largo
+                    {
+                        var rook = GetPieceAt((Border)board.Children[0]) as Rook;
+                        if (rook != null)
+                        {
+                            rook.Position = Tuple.Create(0, 3);
+                            ((Border)board.Children[0]).Child = null;
+                            ((Border)board.Children[3]).Child = rook.ImageControl;
+                            rook.hasMoved = true;
+                        }
+                    }
+                }
+            }
 
         }
 
@@ -357,6 +410,81 @@ namespace Ajedrez
             ValidNewPositions.AddRange(GetContiniuosValidMovesInDirection(board, 1, 1, 1)); //downright
 
             this.ValidMoves = ValidNewPositions;
+
+            if (KingStatusChecker.IsKingInCheck(this, board)) return; //no se puede enrocar si el rey esta en jaque
+
+            if (this.Color == 1 && !this.hasMoved) //castling blanco
+            {
+                Dictionary<Tuple<int, string>, List<Tuple<int, int>>> opponentsValidMoves = null;
+                //castling corto
+                if ( ((Border)board.Children[61]).Child == null && ((Border)board.Children[62]).Child == null )
+                {
+                    Piece? rook = GetPieceAt((Border)board.Children[63]);
+                    if (rook is Rook r && !r.hasMoved)
+                    {
+                        opponentsValidMoves = KingStatusChecker.CalculateAllValidMovesForColor(0, board);
+                        if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(7, 5))) && !opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(7, 6))))
+                        {
+                            if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(7, 6))))
+                            {
+                                this.ValidMoves.Add(Tuple.Create(7, 6));
+                            }
+                        }
+                    }
+                }
+                //castling largo
+                if (((Border)board.Children[57]).Child == null && ((Border)board.Children[58]).Child == null && ((Border)board.Children[59]).Child == null )
+                {
+                    Piece? rook = GetPieceAt((Border)board.Children[56]);
+                    if (rook is Rook r && !r.hasMoved)
+                    {
+                        if (opponentsValidMoves == null) opponentsValidMoves = KingStatusChecker.CalculateAllValidMovesForColor(0, board);
+                        if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(7, 3))) && !opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(7, 2))))
+                        {
+                            if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(7, 2))))
+                            {
+                                this.ValidMoves.Add(Tuple.Create(7, 2));
+                            }
+                        }
+                    }
+                }
+            }
+            else if(this.Color == 0 && !this.hasMoved) //castling negro
+            {
+                Dictionary<Tuple<int, string>, List<Tuple<int, int>>> opponentsValidMoves = null;
+                //castling corto
+                if (((Border)board.Children[5]).Child == null && ((Border)board.Children[6]).Child == null)
+                {
+                    Piece? rook = GetPieceAt((Border)board.Children[7]);
+                    if (rook is Rook r && !r.hasMoved)
+                    {
+                        opponentsValidMoves = KingStatusChecker.CalculateAllValidMovesForColor(1, board);
+                        if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(0, 5))) && !opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(0, 6))))
+                        {
+                            if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(0, 6))))
+                            {
+                                this.ValidMoves.Add(Tuple.Create(0, 6));
+                            }
+                        }
+                    }
+                }
+                //castling largo
+                if (((Border)board.Children[1]).Child == null && ((Border)board.Children[2]).Child == null && ((Border)board.Children[3]).Child == null)
+                {
+                    Piece? rook = GetPieceAt((Border)board.Children[0]);
+                    if (rook is Rook r && !r.hasMoved)
+                    {
+                        if (opponentsValidMoves == null) opponentsValidMoves = KingStatusChecker.CalculateAllValidMovesForColor(1, board);
+                        if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(0, 3))) && !opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(0, 2))))
+                        {
+                            if (!opponentsValidMoves.Values.Any(moves => moves.Contains(Tuple.Create(0, 2))))
+                            {
+                                this.ValidMoves.Add(Tuple.Create(0, 2));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     }

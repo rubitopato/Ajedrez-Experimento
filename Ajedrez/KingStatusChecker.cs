@@ -80,7 +80,7 @@ namespace Ajedrez
 
         }
 
-        private static Dictionary<Tuple<int, string>, List<Tuple<int, int>>> CalculateAllValidMovesForColor(int color, UniformGrid board)
+        public static Dictionary<Tuple<int, string>, List<Tuple<int, int>>> CalculateAllValidMovesForColor(int color, UniformGrid board)
         {
             Dictionary<Tuple<int, string>, List<Tuple<int, int>>> allValidMoves = new Dictionary<Tuple<int, string>, List<Tuple<int, int>>>();
             foreach (var child in board.Children)
