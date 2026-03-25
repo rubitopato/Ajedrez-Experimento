@@ -18,12 +18,17 @@ namespace Ajedrez
             InitializeComponent();
         }
 
-        private void play_button_Click(object sender, RoutedEventArgs e)
+        private void one_player_play_button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+        private void two_player_play_button_Click(object sender, RoutedEventArgs e)
         {
             // Abrir la ventana de juego y cerrar la ventana de inicio
             var gameWindow = new GameWindow();
             gameWindow.Show();
             this.Close();
         }
+
     }
 }

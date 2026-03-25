@@ -8,6 +8,7 @@
         Title="Pagina de Inicio" Height="800" Width="1000">
     <Grid>
         <Label Content="AJEDREZ" Margin="342,144,342,0" VerticalAlignment="Top" Height="86" FontWeight="Bold" FontFamily="Microsoft JhengHei" FontSize="60"/>
-        <Button x:Name="play_button" Content="Jugar" HorizontalAlignment="Center" VerticalAlignment="Center" Height="119" Width="224" FontSize="36" Background="#FF91DAD5" Click="play_button_Click"/>
+        <Button x:Name="one_player_play_button" Content="J1 vs IA" HorizontalAlignment="Center" VerticalAlignment="Center" Height="119" Width="224" FontSize="36" Background="#FF91DAD5" Click="one_player_play_button_Click"/>
+        <Button x:Name="two_player_play_button" Content="J1 vs J2" HorizontalAlignment="Center" VerticalAlignment="Top" Height="119" Width="224" FontSize="36" Background="#FF91DAD5" Click="two_player_play_button_Click" Margin="0,491,0,0"/>
     </Grid>
 </Window>
