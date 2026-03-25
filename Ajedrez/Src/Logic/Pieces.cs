@@ -47,7 +47,7 @@ namespace Ajedrez
             List<Tuple<int, int>> validMoves = new List<Tuple<int, int>>();
             int currentRow = this.Position.Item1 + rowDirection;
             int currentCol = this.Position.Item2 + colDirection;
-            while (currentRow >= 0 && currentRow < board.Rows && currentCol >= 0 && currentCol < board.Columns && limit!=0)
+            while (currentRow >= 0 && currentRow < board.Rows && currentCol >= 0 && currentCol < board.Columns && limit != 0)
             {
                 int index = currentRow * board.Columns + currentCol;
                 var border = board.Children[index] as Border;
@@ -83,7 +83,7 @@ namespace Ajedrez
 
             if (targetPiece != null)
             {
-               ((Border)board.Children[NewIndex]).Child = null;
+                ((Border)board.Children[NewIndex]).Child = null;
             }
             ((Border)board.Children[LastIndex]).Child = null;
             ((Border)board.Children[NewIndex]).Child = this.ImageControl;
@@ -169,7 +169,7 @@ namespace Ajedrez
         public void CheckInvalidMoves(UniformGrid board, Piece king, string asm)
         {
             if (this.ValidMoves == null) return;
-            List<Tuple<int,int>> ValidMovesAux = this.ValidMoves.ToList();
+            List<Tuple<int, int>> ValidMovesAux = this.ValidMoves.ToList();
             foreach (var move in ValidMovesAux)
             {
                 // Simula el movimiento
@@ -184,7 +184,7 @@ namespace Ajedrez
                 {
                     this.ValidMoves.Remove(move);
                 }
-                
+
             }
         }
 
@@ -193,18 +193,18 @@ namespace Ajedrez
     internal class Pawn : Piece
     {
         public bool hasJustMovedTwo { get; set; }
-        public Pawn(string name, Tuple<int, int> position, string imagePath) : base(name, position, imagePath) 
-        { 
+        public Pawn(string name, Tuple<int, int> position, string imagePath) : base(name, position, imagePath)
+        {
             this.hasJustMovedTwo = false;
         }
 
         public override void CalculateValidMoves(UniformGrid board)
         {
-            List<Tuple<int,int>> ValidNewPositions = new List<Tuple<int, int>>();
+            List<Tuple<int, int>> ValidNewPositions = new List<Tuple<int, int>>();
             int IndexOfCurrentPosition = this.Position.Item1 * board.Columns + this.Position.Item2;
             int PawnDirection = this.Color == 1 ? -1 : 1; // Si es blanco, se mueve hacia arriba
 
-            ValidNewPositions.AddRange(GetContiniuosValidMovesInDirection(board, PawnDirection, 0, hasMoved ? 1 : 2)); 
+            ValidNewPositions.AddRange(GetContiniuosValidMovesInDirection(board, PawnDirection, 0, hasMoved ? 1 : 2));
 
             //comer normal
             if (this.Position.Item2 > 0 && ((Border)board.Children[IndexOfCurrentPosition + PawnDirection * board.Columns - 1]).Child != null)
@@ -226,9 +226,9 @@ namespace Ajedrez
             }
 
             //comer al paso
-            if ( ((Border)board.Children[IndexOfCurrentPosition + 1]).Child != null)
+            if (((Border)board.Children[IndexOfCurrentPosition + 1]).Child != null)
             {
-                Piece? piece = GetPieceAt( (Border)board.Children[IndexOfCurrentPosition + 1] );
+                Piece? piece = GetPieceAt((Border)board.Children[IndexOfCurrentPosition + 1]);
                 if (piece is Pawn adjacentPawn && adjacentPawn.Color != this.Color && adjacentPawn.hasJustMovedTwo)
                 {
                     ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + PawnDirection, this.Position.Item2 + 1));
@@ -256,7 +256,7 @@ namespace Ajedrez
                 string colorName = this.Color == 1 ? "blanco" : "negro";
                 string[] parts = this.Name.Split('_');
                 string index = parts.Length > 2 ? parts[2] : "0";
-                var newName = $"New_{(this.Color==1?"White":"Black")}_Queen_{index}";
+                var newName = $"New_{(this.Color == 1 ? "White" : "Black")}_Queen_{index}";
                 var newPiece = new Queen(newName, this.Position, $"pack://application:,,,/{asm};component/Images/reina_{colorName}.png");
                 int idx = this.Position.Item1 * board.Columns + this.Position.Item2;
                 ((Border)board.Children[idx]).Child = newPiece.ImageControl;
@@ -315,14 +315,14 @@ namespace Ajedrez
         {
             List<Tuple<int, int>> ValidNewPositions = new List<Tuple<int, int>>();
 
-            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 - 2, this.Position.Item2 - 1)); 
+            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 - 2, this.Position.Item2 - 1));
             ValidNewPositions.Add(Tuple.Create(this.Position.Item1 - 1, this.Position.Item2 - 2));
             ValidNewPositions.Add(Tuple.Create(this.Position.Item1 - 2, this.Position.Item2 + 1));
-            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 - 1, this.Position.Item2 + 2)); 
-            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 1, this.Position.Item2 - 2)); 
-            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 2, this.Position.Item2 - 1)); 
-            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 2, this.Position.Item2 + 1)); 
-            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 1, this.Position.Item2 + 2)); 
+            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 - 1, this.Position.Item2 + 2));
+            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 1, this.Position.Item2 - 2));
+            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 2, this.Position.Item2 - 1));
+            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 2, this.Position.Item2 + 1));
+            ValidNewPositions.Add(Tuple.Create(this.Position.Item1 + 1, this.Position.Item2 + 2));
 
             return ValidNewPositions;
         }
@@ -336,9 +336,9 @@ namespace Ajedrez
                 {
                     ValidNewPositions.Remove(pos);
                 }
-                else if( ((Border)board.Children[pos.Item1 * board.Columns + pos.Item2]).Child != null)
+                else if (((Border)board.Children[pos.Item1 * board.Columns + pos.Item2]).Child != null)
                 {
-                    Piece? piece = GetPieceAt( (Border)board.Children[pos.Item1 * board.Columns + pos.Item2] );
+                    Piece? piece = GetPieceAt((Border)board.Children[pos.Item1 * board.Columns + pos.Item2]);
                     if (piece?.Color == this.Color)
                     {
                         ValidNewPositions.Remove(pos);
@@ -411,7 +411,7 @@ namespace Ajedrez
                 Dictionary<Tuple<int, string>, List<Tuple<int, int>>> opponentsValidMoves = null;
 
                 //castling corto
-                if ( ((Border)board.Children[61]).Child == null && ((Border)board.Children[62]).Child == null )
+                if (((Border)board.Children[61]).Child == null && ((Border)board.Children[62]).Child == null)
                 {
                     Piece? rook = GetPieceAt((Border)board.Children[63]);
                     if (rook is Rook r && !r.hasMoved)
@@ -428,7 +428,7 @@ namespace Ajedrez
                 }
 
                 //castling largo
-                if (((Border)board.Children[57]).Child == null && ((Border)board.Children[58]).Child == null && ((Border)board.Children[59]).Child == null )
+                if (((Border)board.Children[57]).Child == null && ((Border)board.Children[58]).Child == null && ((Border)board.Children[59]).Child == null)
                 {
                     Piece? rook = GetPieceAt((Border)board.Children[56]);
                     if (rook is Rook r && !r.hasMoved)
@@ -445,7 +445,7 @@ namespace Ajedrez
                 }
             }
 
-            else if(this.Color == 0 && !this.hasMoved) //castling negro
+            else if (this.Color == 0 && !this.hasMoved) //castling negro
             {
                 Dictionary<Tuple<int, string>, List<Tuple<int, int>>> opponentsValidMoves = null;
 

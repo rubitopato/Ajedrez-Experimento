@@ -1,26 +1,23 @@
-using System.Collections;
-using System.Drawing;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Text;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Brushes = System.Windows.Media.Brushes;
 using Image = System.Windows.Controls.Image;
+using Path = System.IO.Path;
 
 namespace Ajedrez
 {
-    public partial class GameWindow : Window
+    public partial class OnePlayerGameWindow : Window
     {
+        private StockfishEngine? engine = null;
+        private string? enginePath = null; // path to stockfish executable
+
+        // Media player for playing sounds from resources
+        private MediaPlayer mediaPlayer = new MediaPlayer();
+
         private Piece selectedPiece = null;
         private Piece WhiteKing = null;
         private Piece BlackKing = null;
@@ -63,10 +60,144 @@ namespace Ajedrez
                 { Tuple.Create(6, 7), new Pawn("White_Pawn_7", Tuple.Create(6, 7), $"pack://application:,,,/{asm};component/Images/peon_blanco.png") },
             };
 
-        public GameWindow()
+        public OnePlayerGameWindow()
         {
             InitializeComponent();
             DrawBoard();
+
+            var tryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Engines", "stockfish.exe");
+            if (File.Exists(tryPath))
+            {
+                enginePath = tryPath;
+            }
+        }
+
+        public void StartStockfish(string exePath)
+        {
+            try
+            {
+                StopStockfish();
+                engine = new StockfishEngine();
+                engine.Start(exePath);
+                enginePath = exePath;
+            }
+            catch (Exception ex)
+            {
+                engine = null;
+                enginePath = null;
+                MessageBox.Show($"No se pudo iniciar Stockfish: {ex.Message}");
+            }
+        }
+
+        public void StopStockfish()
+        {
+            try
+            {
+                engine?.Stop();
+                engine?.Dispose();
+            }
+            catch { }
+            engine = null;
+        }
+
+        public async Task RequestEngineMoveAsync(int movetimeMs = 1000, CancellationToken ct = default)
+        {
+            if (engine == null || !engine.IsRunning) return;
+
+            // generate FEN from current board; determine active color by which pieces are clickable
+            // If white pieces are clickable then it's white to move, else black.
+
+            var fen = BoardGenerator.GenerateFENFromBoard(BoardGrid, "b");
+            engine.PositionFen(fen);
+
+            try
+            {
+                var best = await engine.GoMovetimeAsync(movetimeMs, ct).ConfigureAwait(false);
+                // apply move on UI thread
+                Dispatcher.Invoke(() => ApplyUciMove(best));
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() => MessageBox.Show($"Engine error: {ex.Message}"));
+            }
+        }
+
+        private void ApplyUciMove(string uci)
+        {
+            if (string.IsNullOrEmpty(uci) || uci.Length < 4) return;
+            // parse e2e4 or e7e8q
+            int fromFile = uci[0] - 'a';
+            int fromRank = uci[1] - '0';
+            int toFile = uci[2] - 'a';
+            int toRank = uci[3] - '0';
+
+            int fromRow = BoardGrid.Rows - fromRank;
+            int fromCol = fromFile;
+            int toRow = BoardGrid.Rows - toRank;
+            int toCol = toFile;
+
+            var fromBorder = (Border)BoardGrid.Children[fromRow * BoardGrid.Columns + fromCol];
+            var piece = Piece.GetPieceAt(fromBorder);
+            if (piece == null) return;
+
+            // if promotion
+            char? prom = null;
+            if (uci.Length >= 5) prom = char.ToLowerInvariant(uci[4]);
+
+            // move without showing promotion UI
+            piece.Move(Tuple.Create(toRow, toCol), BoardGrid, asm, false);
+
+            if (prom.HasValue && piece is Pawn)
+            {
+                string colorName = piece.Color == 1 ? "blanco" : "negro";
+                string colorPrefix = piece.Color == 1 ? "White" : "Black";
+                string index = "0";
+                Piece newPiece = prom.Value switch
+                {
+                    'q' => new Queen($"{colorPrefix}_Queen_{index}", piece.Position, $"pack://application:,,,/{asm};component/Images/reina_{colorName}.png"),
+                    'r' => new Rook($"{colorPrefix}_Rook_{index}", piece.Position, $"pack://application:,,,/{asm};component/Images/torre_{colorName}.png"),
+                    'b' => new Bishop($"{colorPrefix}_Bishop_{index}", piece.Position, $"pack://application:,,,/{asm};component/Images/alfil_{colorName}.png"),
+                    'n' => new Knight($"{colorPrefix}_Knight_{index}", piece.Position, $"pack://application:,,,/{asm};component/Images/caballo_{colorName}.png"),
+                    _ => new Queen($"{colorPrefix}_Queen_{index}", piece.Position, $"pack://application:,,,/{asm};component/Images/reina_{colorName}.png"),
+                };
+                int idx = piece.Position.Item1 * BoardGrid.Columns + piece.Position.Item2;
+                ((Border)BoardGrid.Children[idx]).Child = newPiece.ImageControl;
+            }
+
+            // update kings references if moved
+            if (piece.Name.Contains("White_King")) WhiteKing = piece;
+            else if (piece.Name.Contains("Black_King")) BlackKing = piece;
+
+            // After engine (black) move, enable white pieces and disable black pieces
+            SetPiecesClickableByColor(1, true);
+            changePawnsThatMovedTwo(BoardGrid, 1);
+
+            PlaySound();
+
+            int status = KingStatusChecker.CheckKingStatus(WhiteKing, BoardGrid, asm);
+            switch (status)
+            {
+                case 0:
+                    Border cb = ((Border)BoardGrid.Children[RedBorder]);
+                    cb?.Background = (string)cb.Tag == "Light" ? Brushes.Bisque : Brushes.SaddleBrown;
+                    break;
+                case 1:
+                    Tuple<int, int> kingPos = WhiteKing.Position;
+                    RedBorder = kingPos.Item1 * BoardGrid.Columns + kingPos.Item2;
+                    ((Border)BoardGrid.Children[RedBorder]).Background = Brushes.Red;
+                    break;
+                case 2:
+                    var win = new VictoryWindow("Los negros ganan");
+                    var result = win.ShowDialog();
+                    if (result == true) { Reset(); } else { this.Close(); }
+                    break;
+                case 3:
+                    var drawWin = new VictoryWindow("Empate: Rey blanco ahogado");
+                    var drawResult = drawWin.ShowDialog();
+                    if (drawResult == true) { Reset(); } else { this.Close(); }
+                    break;
+            }
         }
 
         private void DrawBoard()
@@ -133,7 +264,7 @@ namespace Ajedrez
 
         private void Reset()
         {
-            var w = new GameWindow();
+            var w = new OnePlayerGameWindow();
             w.Show();
             this.Close();
         }
@@ -194,6 +325,9 @@ namespace Ajedrez
                     }
                 }
                 selectedPiece.Move(Tuple.Create(row, column), BoardGrid, asm, true);
+                PlaySound();
+
+                int movedColor = selectedPiece.Color; // capture who moved (1 white, 0 black)
 
                 switch (KingStatusChecker.CheckKingStatus(selectedPiece.Color == 1 ? BlackKing : WhiteKing, BoardGrid, asm))
                 {
@@ -235,17 +369,23 @@ namespace Ajedrez
                         break;
                 }
 
-                if (selectedPiece.Color == 1)
+                SetPiecesClickableByColor(1, false);
+                changePawnsThatMovedTwo(BoardGrid, 0);
+
+                // if white just moved (human), request engine move for black
+                if (movedColor == 1)
                 {
-                    SetPiecesClickableByColor(1, false);
-                    SetPiecesClickableByColor(0, true);
-                    changePawnsThatMovedTwo(BoardGrid, 0);
-                }
-                else
-                {
-                    SetPiecesClickableByColor(1, true);
-                    SetPiecesClickableByColor(0, false);
-                    changePawnsThatMovedTwo(BoardGrid, 1);
+                    // ensure engine started
+                    if (engine == null && !string.IsNullOrEmpty(enginePath) && File.Exists(enginePath))
+                    {
+                        StartStockfish(enginePath);
+                    }
+
+                    // start engine move asynchronously (do not await)
+                    if (engine != null && engine.IsRunning)
+                    {
+                        _ = RequestEngineMoveAsync(1000, CancellationToken.None);
+                    }
                 }
 
                 selectedPiece = null;
@@ -277,6 +417,35 @@ namespace Ajedrez
                 {
                     pawn.hasJustMovedTwo = false;
                 }
+            }
+        }
+
+        public void PlaySound()
+        {
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sounds", "move.wav");
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            string candidate = filePath;
+            if (!Path.IsPathRooted(candidate))
+            {
+                candidate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filePath);
+            }
+
+            if (!File.Exists(candidate))
+            {
+                MessageBox.Show($"Archivo de audio no encontrado: {filePath}\nBuscado en: {candidate}");
+                return;
+            }
+
+            try
+            {
+                mediaPlayer.Open(new Uri(candidate, UriKind.Absolute));
+                mediaPlayer.Volume = 1;
+                mediaPlayer.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo reproducir el archivo de audio: {ex.Message}");
             }
         }
     }

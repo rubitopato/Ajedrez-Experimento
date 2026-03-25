@@ -6,9 +6,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Images\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Engines\stockfish.exe" />
     <None Remove="Images\alfil_blanco.png" />
     <None Remove="Images\alfil_negro.png" />
     <None Remove="Images\caballo_blanco.png" />
@@ -24,6 +26,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Remove="Src\Windows\App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Engines\stockfish.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Images\alfil_blanco.png" />
     <Resource Include="Images\alfil_negro.png" />
     <Resource Include="Images\caballo_blanco.png" />
@@ -36,6 +49,12 @@
     <Resource Include="Images\rey_negro.png" />
     <Resource Include="Images\torre_blanco.png" />
     <Resource Include="Images\torre_negro.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Sounds\move.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
