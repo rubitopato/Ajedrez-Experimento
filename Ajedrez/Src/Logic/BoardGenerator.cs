@@ -125,7 +125,8 @@ namespace Ajedrez
             }
 
             var wk = GetPieceAtIndex(7, 4);
-            if (wk is Piece && wk.Name.Contains("White") && !wk.hasMoved) {
+            if (wk is Piece && wk.Name.Contains("White") && !wk.hasMoved)
+            {
                 var wrK = GetPieceAtIndex(7, 7);
                 if (wrK is Piece && wrK.Name.Contains("White") && !wrK.hasMoved) whiteCanK = true;
                 var wrQ = GetPieceAtIndex(7, 0);
@@ -133,7 +134,8 @@ namespace Ajedrez
             }
 
             var bk = GetPieceAtIndex(0, 4);
-            if (bk is Piece && bk.Name.Contains("Black") && !bk.hasMoved) {
+            if (bk is Piece && bk.Name.Contains("Black") && !bk.hasMoved)
+            {
                 var brK = GetPieceAtIndex(0, 7);
                 if (brK is Piece && brK.Name.Contains("Black") && !brK.hasMoved) blackCanK = true;
                 var brQ = GetPieceAtIndex(0, 0);

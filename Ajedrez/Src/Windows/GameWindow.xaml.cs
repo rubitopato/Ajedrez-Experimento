@@ -1,24 +1,12 @@
-using System.Collections;
-using System.Drawing;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Text;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Brushes = System.Windows.Media.Brushes;
 using Image = System.Windows.Controls.Image;
 using Path = System.IO.Path;
-using System.IO;
 
 namespace Ajedrez
 {

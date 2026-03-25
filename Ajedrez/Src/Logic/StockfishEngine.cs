@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Ajedrez.Engine
+namespace Ajedrez
 {
     internal class StockfishEngine : IDisposable
     {
