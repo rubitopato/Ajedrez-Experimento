@@ -464,14 +464,5 @@ namespace Ajedrez
                 MessageBox.Show($"No se pudo reproducir el archivo de audio: {ex.Message}");
             }
         }
-
-        public void StopSound()
-        {
-            try
-            {
-                mediaPlayer.Stop();
-            }
-            catch { }
-        }
     }
 }

@@ -10,12 +10,15 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Brushes = System.Windows.Media.Brushes;
 using Image = System.Windows.Controls.Image;
+using Path = System.IO.Path;
+using System.IO;
 
 namespace Ajedrez
 {
@@ -25,6 +28,8 @@ namespace Ajedrez
         private Piece WhiteKing = null;
         private Piece BlackKing = null;
         private int RedBorder = 0;
+
+        private MediaPlayer mediaPlayer = new MediaPlayer();
 
         private static readonly string? asm = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
         private readonly Dictionary<Tuple<int, int>, Piece> initialPieces = new Dictionary<Tuple<int, int>, Piece>
@@ -194,6 +199,7 @@ namespace Ajedrez
                     }
                 }
                 selectedPiece.Move(Tuple.Create(row, column), BoardGrid, asm, true);
+                PlaySound();
 
                 switch (KingStatusChecker.CheckKingStatus(selectedPiece.Color == 1 ? BlackKing : WhiteKing, BoardGrid, asm))
                 {
@@ -277,6 +283,35 @@ namespace Ajedrez
                 {
                     pawn.hasJustMovedTwo = false;
                 }
+            }
+        }
+
+        public void PlaySound()
+        {
+            string filePath = "C:\\Users\\conno\\source\\repos\\Ajedrez\\Ajedrez\\Sounds\\move.wav";
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            string candidate = filePath;
+            if (!Path.IsPathRooted(candidate))
+            {
+                candidate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filePath);
+            }
+
+            if (!File.Exists(candidate))
+            {
+                MessageBox.Show($"Archivo de audio no encontrado: {filePath}\nBuscado en: {candidate}");
+                return;
+            }
+
+            try
+            {
+                mediaPlayer.Open(new Uri(candidate, UriKind.Absolute));
+                mediaPlayer.Volume = 1;
+                mediaPlayer.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo reproducir el archivo de audio: {ex.Message}");
             }
         }
     }
