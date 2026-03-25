@@ -20,7 +20,9 @@ namespace Ajedrez
 
         private void one_player_play_button_Click(object sender, RoutedEventArgs e)
         {
-
+            var gameWindow = new OnePlayerGameWindow();
+            gameWindow.Show();
+            this.Close();
         }
         private void two_player_play_button_Click(object sender, RoutedEventArgs e)
         {
