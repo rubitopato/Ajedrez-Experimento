@@ -276,7 +276,7 @@ namespace Ajedrez
 
         public void PlaySound()
         {
-            string filePath = "C:\\Users\\conno\\source\\repos\\Ajedrez\\Ajedrez\\Sounds\\move.wav";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sounds", "move.wav");
             if (string.IsNullOrEmpty(filePath)) return;
 
             string candidate = filePath;
