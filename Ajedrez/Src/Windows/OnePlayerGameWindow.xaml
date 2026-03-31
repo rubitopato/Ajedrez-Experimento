@@ -4,7 +4,7 @@
         Height="800" Width="1000"
         Background="#F4F6F8"
         WindowStartupLocation="CenterScreen"
-        Title="Ajedrez">
+        Title="J1 vs IA">
 
     <Grid>
         <!-- Definimos columnas para equilibrar el layout -->
@@ -15,11 +15,10 @@
 
         <!-- Botón a la izquierda, centrado verticalmente -->
         <Button x:Name="ResetButton"
-                Grid.Column="0"
                 Click="ResetButton_Click"
                 Content="Reiniciar"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center"
+                VerticalAlignment="Top"
                 Height="70"
                 Width="180"
                 FontSize="20"
@@ -27,7 +26,7 @@
                 Foreground="White"
                 Background="#4CAF50"
                 BorderThickness="0"
-                Cursor="Hand">
+                Cursor="Hand" Margin="0,392,0,0">
 
             <Button.Style>
                 <Style TargetType="Button">
@@ -51,6 +50,48 @@
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter Property="Background" Value="#3D8B40"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+
+        <Button x:Name="InitButton" 
+            Click="InitButton_Click"
+            Content="Inicio"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Height="70"
+            Width="180"
+            FontSize="20"
+            FontWeight="SemiBold"
+            Foreground="White"
+            Background="#FF43B8A7"
+            BorderThickness="0"
+            Cursor="Hand" Margin="0,317,0,0">
+
+            <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Background" Value="#FF43B8A7"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Border CornerRadius="12"
+                            Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+
+                    <!-- Efecto hover -->
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#FF2CAF9C"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#FF2CAF9C"/>
                         </Trigger>
                     </Style.Triggers>
                 </Style>

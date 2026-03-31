@@ -302,5 +302,12 @@ namespace Ajedrez
                 MessageBox.Show($"No se pudo reproducir el archivo de audio: {ex.Message}");
             }
         }
+
+        private void InitButton_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new MainWindow();
+            win.Show();
+            this.Close();
+        }
     }
 }
