@@ -276,7 +276,7 @@ namespace Ajedrez
 
         public void PlaySound()
         {
-            string filePath = "C:\\Users\\conno\\source\\repos\\Ajedrez\\Ajedrez\\Sounds\\move.wav";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sounds", "move.wav");
             if (string.IsNullOrEmpty(filePath)) return;
 
             string candidate = filePath;
@@ -301,6 +301,13 @@ namespace Ajedrez
             {
                 MessageBox.Show($"No se pudo reproducir el archivo de audio: {ex.Message}");
             }
+        }
+
+        private void InitButton_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new MainWindow();
+            win.Show();
+            this.Close();
         }
     }
 }

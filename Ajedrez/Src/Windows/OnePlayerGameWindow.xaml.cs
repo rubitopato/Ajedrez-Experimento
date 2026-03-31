@@ -241,6 +241,11 @@ namespace Ajedrez
                 }
             }
 
+            if (engine == null && !string.IsNullOrEmpty(enginePath) && File.Exists(enginePath))
+            {
+                StartStockfish(enginePath);
+            }
+
             SetPiecesClickableByColor(1, true);
             SetPiecesClickableByColor(0, false);
         }
@@ -447,6 +452,14 @@ namespace Ajedrez
             {
                 MessageBox.Show($"No se pudo reproducir el archivo de audio: {ex.Message}");
             }
+        }
+
+        private void InitButton_Click(object sender, RoutedEventArgs e)
+        {
+            StopStockfish();
+            var win = new MainWindow();
+            win.Show();
+            this.Close();
         }
     }
 }
